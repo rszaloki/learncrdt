@@ -1,56 +1,54 @@
 import uuid from 'uuid/v4'
 
-const SET_VAL = 'setVal'
-const SET_REF = 'setRef'
-const CREATE = 'create'
+const CREATE = 'C'
+const SET_VAL = 'V'
+const SET_REF = 'R'
 
 class Logger {
   constructor () {
-    this[CREATE] = []
-    this[SET_VAL] = []
-    this[SET_REF] = []
+    this[CREATE] = new Set()
+    this[SET_VAL] = new Set()
+    this[SET_REF] = new Set()
   }
 
   add (objectId, type, prop, value) {
-    this[type].push({objectId, prop, value})
+    this[type].add(JSON.stringify([objectId, prop, value]))
   }
 }
 
-export default class Mergable {
-  constructor (data = {}) {
-    this.log = new Logger()
-    this.objectIndex = {}
-    this.$ = this.wrapObject(data)
-  }
-
-  get setHandler () {
-    return {
-      set: (obj, prop, value) => {
-        let newVal = value
-        if (obj._id) {
-          if (typeof value !== 'object') {
-            this.log.add(obj._id, SET_VAL, prop, newVal)
-          } else {
-            newVal = this.wrapObject(value)
-            this.log.add(obj._id, SET_REF, prop, newVal._id)
-          }
-        }
-        return Reflect.set(obj, prop, newVal)
-      }
-    }
-  }
-
-  wrapObject (obj) {
-    let result = {}
-    if (!obj._id) {
-      result._id = uuid()
-      this.log.add(result._id, CREATE)
+const setter = function (obj, prop, value) {
+  let newVal = value
+  if (obj._id) {
+    if (typeof value !== 'object') {
+      this._log.add(obj._id, SET_VAL, prop, newVal)
     } else {
-      result._id = obj._id
+      newVal = this.wrapObject(value)
+      this._log.add(obj._id, SET_REF, prop, newVal._id)
     }
+  }
+  return Reflect.set(obj, prop, newVal)
+}
 
-    result = new Proxy(result, this.setHandler)
+class Mergable {
+  constructor () {
+    this._id = uuid()
+    Object.defineProperties(this, {
+      _log: {
+        enumerable: false,
+        value: new Logger(),
+        writable: false,
+        configurable: false
+      },
+      _objectIndex: {
+        enumerable: false,
+        value: {},
+        writable: false,
+        configurable: false
+      }
+    })
+  }
 
+  assign (obj, result) {
     Object.keys(obj).forEach(key => {
       if (typeof obj[key] === 'object') {
         result[key] = this.wrapObject(obj[key])
@@ -60,24 +58,57 @@ export default class Mergable {
         }
       }
     })
+  }
 
-    this.objectIndex[result._id] = result
-    return this.objectIndex[result._id]
+  wrapObject (obj) {
+    let result = {}
+    if (!obj._id) {
+      result._id = uuid()
+      this._log.add(result._id, CREATE)
+    } else {
+      result._id = obj._id
+    }
+
+    result = new Proxy(result, {
+      set: setter.bind(this)
+    })
+
+    this.assign(obj, result)
+
+    this._objectIndex[result._id] = result
+    return this._objectIndex[result._id]
+  }
+
+  applyLog (log, callback) {
+    log.forEach(record => callback(...(JSON.parse(record))))
   }
 
   merge (mergableObject) {
-    // this is fairly naive approach, it should use sorted lists to merge the props
-
-    mergableObject.log[CREATE].forEach(record => {
-      if (this.objectIndex[record.objectId] === undefined) {
-        this.wrapObject({_id: record.objectId})
+    this.applyLog(mergableObject._log[CREATE], objectId => {
+      if (this._objectIndex[objectId] === undefined) {
+        this.wrapObject({_id: objectId})
       }
     })
-    mergableObject.log[SET_REF].forEach(record => {
-      this.objectIndex[record.objectId][record.prop] = this.objectIndex[record.value]
+
+    this.applyLog(mergableObject._log[SET_REF], (objectId, prop, value) => {
+      this._objectIndex[objectId][prop] = this._objectIndex[value]
     })
-    mergableObject.log[SET_VAL].forEach(record => {
-      this.objectIndex[record.objectId][record.prop] = record.value
+
+    this.applyLog(mergableObject._log[SET_REF], (objectId, prop, value) => {
+      this._objectIndex[objectId][prop] = value
     })
   }
 }
+
+export default new Proxy(Mergable, {
+  construct (target, args) {
+    const mergable = new target()
+    const proxiedMergable = new Proxy(mergable, {
+      set: setter.bind(mergable)
+    })
+
+    proxiedMergable.assign(args[0], proxiedMergable)
+
+    return proxiedMergable
+  }
+})

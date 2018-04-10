@@ -3329,7 +3329,7 @@ koa-webpack@^3.0.1:
     merge-options "^1.0.0"
     webpack-dev-middleware "^3.0.0"
     webpack-hot-client "^2.0.0"
-    webpack-log "^1.1.1"
+    webpack-_log "^1.1.1"
 
 koa@^2.4.1:
   version "2.5.0"
@@ -3389,8 +3389,8 @@ listr-update-renderer@^0.4.0:
     elegant-spinner "^1.0.1"
     figures "^1.7.0"
     indent-string "^3.0.0"
-    log-symbols "^1.0.2"
-    log-update "^1.0.2"
+    _log-symbols "^1.0.2"
+    _log-update "^1.0.2"
     strip-ansi "^3.0.1"
 
 listr-verbose-renderer@^0.4.0:
@@ -3416,8 +3416,8 @@ listr@^0.13.0:
     listr-silent-renderer "^1.1.1"
     listr-update-renderer "^0.4.0"
     listr-verbose-renderer "^0.4.0"
-    log-symbols "^1.0.2"
-    log-update "^1.0.2"
+    _log-symbols "^1.0.2"
+    _log-update "^1.0.2"
     ora "^0.2.3"
     p-map "^1.1.1"
     rxjs "^5.4.2"
@@ -3470,19 +3470,19 @@ lodash@^4.13.1, lodash@^4.14.0, lodash@^4.17.2, lodash@^4.17.4, lodash@^4.17.5, 
 
 log-symbols@^1.0.2:
   version "1.0.2"
-  resolved "https://registry.yarnpkg.com/log-symbols/-/log-symbols-1.0.2.tgz#376ff7b58ea3086a0f09facc74617eca501e1a18"
+  resolved "https://registry.yarnpkg.com/_log-symbols/-/_log-symbols-1.0.2.tgz#376ff7b58ea3086a0f09facc74617eca501e1a18"
   dependencies:
     chalk "^1.0.0"
 
 log-symbols@^2.1.0, log-symbols@^2.2.0:
   version "2.2.0"
-  resolved "https://registry.yarnpkg.com/log-symbols/-/log-symbols-2.2.0.tgz#5740e1c5d6f0dfda4ad9323b5332107ef6b4c40a"
+  resolved "https://registry.yarnpkg.com/_log-symbols/-/_log-symbols-2.2.0.tgz#5740e1c5d6f0dfda4ad9323b5332107ef6b4c40a"
   dependencies:
     chalk "^2.0.1"
 
 log-update@^1.0.2:
   version "1.0.2"
-  resolved "https://registry.yarnpkg.com/log-update/-/log-update-1.0.2.tgz#19929f64c4093d2d2e7075a1dad8af59c296b8d1"
+  resolved "https://registry.yarnpkg.com/_log-update/-/_log-update-1.0.2.tgz#19929f64c4093d2d2e7075a1dad8af59c296b8d1"
   dependencies:
     ansi-escapes "^1.0.0"
     cli-cursor "^1.0.2"
@@ -6019,7 +6019,7 @@ webpack-cli@^2.0.13:
     listr "^0.13.0"
     loader-utils "^1.1.0"
     lodash "^4.17.5"
-    log-symbols "^2.2.0"
+    _log-symbols "^2.2.0"
     mkdirp "^0.5.1"
     p-each-series "^1.0.0"
     p-lazy "^1.0.0"
@@ -6042,7 +6042,7 @@ webpack-dev-middleware@^3.0.0:
     path-is-absolute "^1.0.0"
     range-parser "^1.0.3"
     url-join "^4.0.0"
-    webpack-log "^1.0.1"
+    webpack-_log "^1.0.1"
 
 webpack-hot-client@^2.0.0, webpack-hot-client@^2.2.0:
   version "2.2.0"
@@ -6051,15 +6051,15 @@ webpack-hot-client@^2.0.0, webpack-hot-client@^2.2.0:
     json-stringify-safe "^5.0.1"
     loglevelnext "^1.0.2"
     uuid "^3.1.0"
-    webpack-log "^1.1.1"
+    webpack-_log "^1.1.1"
     ws "^4.0.0"
 
 webpack-log@^1.0.1, webpack-log@^1.1.1, webpack-log@^1.1.2:
   version "1.1.2"
-  resolved "https://registry.yarnpkg.com/webpack-log/-/webpack-log-1.1.2.tgz#cdc76016537eed24708dc6aa3d1e52189efee107"
+  resolved "https://registry.yarnpkg.com/webpack-_log/-/webpack-_log-1.1.2.tgz#cdc76016537eed24708dc6aa3d1e52189efee107"
   dependencies:
     chalk "^2.1.0"
-    log-symbols "^2.1.0"
+    _log-symbols "^2.1.0"
     loglevelnext "^1.0.1"
     uuid "^3.1.0"
 
@@ -6089,7 +6089,7 @@ webpack-serve@^0.3.1:
     url-join "3.0.0"
     v8-compile-cache "^1.1.0"
     webpack-hot-client "^2.2.0"
-    webpack-log "^1.1.2"
+    webpack-_log "^1.1.2"
 
 webpack-sources@^1.0.1, webpack-sources@^1.1.0:
   version "1.1.0"
@@ -6271,7 +6271,7 @@ yeoman-environment@^2.0.0, yeoman-environment@^2.0.5:
     inquirer "^3.3.0"
     is-scoped "^1.0.0"
     lodash "^4.17.4"
-    log-symbols "^2.1.0"
+    _log-symbols "^2.1.0"
     mem-fs "^1.1.0"
     text-table "^0.2.0"
     untildify "^3.0.2"
