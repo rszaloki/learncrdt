@@ -2,6 +2,8 @@ import uuid from 'uuid/v4'
 
 const CREATE = 'C'
 const SET = 'S'
+const ID = '_id'
+
 
 class Logger {
   constructor () {
@@ -18,12 +20,12 @@ class Logger {
 
 const setter = function (obj, prop, value) {
   let newVal = value
-  if (obj._id) {
+  if (obj[ID]) {
     if (typeof value !== 'object') {
-      this._log.add(obj._id, SET, prop, newVal)
+      this._log.add(obj[ID], SET, prop, newVal)
     } else {
       newVal = this.wrapObject(value)
-      this._log.add(obj._id, SET, prop, {_id: newVal._id})
+      this._log.add(obj[ID], SET, prop, {[ID]: newVal[ID]})
     }
   }
   return Reflect.set(obj, prop, newVal)
@@ -31,7 +33,7 @@ const setter = function (obj, prop, value) {
 
 class Mergable {
   constructor () {
-    this._id = uuid()
+    this[ID] = uuid()
     Object.defineProperties(this, {
       _log: {
         enumerable: false,
@@ -50,11 +52,11 @@ class Mergable {
 
   wrapObject (obj) {
     let result = {}
-    if (!obj._id) {
-      result._id = uuid()
-      this._log.add(result._id, CREATE)
+    if (!obj[ID]) {
+      result[ID] = uuid()
+      this._log.add(result[ID], CREATE)
     } else {
-      result._id = obj._id
+      result[ID] = obj[ID]
     }
 
     result = new Proxy(result, {
@@ -65,14 +67,14 @@ class Mergable {
       if (typeof obj[key] === 'object') {
         result[key] = this.wrapObject(obj[key])
       } else {
-        if (key !== '_id') {
+        if (key !== ID) {
           result[key] = obj[key]
         }
       }
     })
 
-    this._objectIndex[result._id] = result
-    return this._objectIndex[result._id]
+    this._objectIndex[result[ID]] = result
+    return this._objectIndex[result[ID]]
   }
 
   applyLog (log, callback) {
@@ -85,16 +87,16 @@ class Mergable {
     this.applyLog(mergableObject._log[CREATE], objectId => {
       if (this._objectIndex[objectId] === undefined) {
         console.log(`[apply] create ${objectId}`)
-        this.wrapObject({_id: objectId})
+        this.wrapObject({[ID]: objectId})
       }
     })
 
     this.applyLog(mergableObject._log[SET], (objectId, prop, value) => {
       console.log(`[apply] set ${objectId} ${prop} ${value}`)
       if (typeof value === 'object') {
-        this._objectIndex[objectId][prop] = this._objectIndex[value._id]
+        this._objectIndex[objectId][prop] = this._objectIndex[value[ID]]
       } else {
-        if (prop !== '_id') {
+        if (prop !== ID) {
           this._objectIndex[objectId][prop] = value
         }
       }
@@ -109,7 +111,7 @@ export default new Proxy(Mergable, {
       set: setter.bind(mergable)
     })
 
-    proxiedMergable._objectIndex[proxiedMergable._id] = proxiedMergable
+    proxiedMergable._objectIndex[proxiedMergable[ID]] = proxiedMergable
     Object.keys(args[0] || {}).forEach(key => proxiedMergable[key] = args[0][key])
 
     return proxiedMergable
