@@ -1,0 +1,85 @@
+<main>
+    <nav><button class="button__primary" on:click="add()">+</button></nav>
+    <div class="canvas">
+   	{{#each $canvas as stamp}}
+   	    <img alt="stamp" data-stampid="{{stamp.stampId}}" src="unDraw/{{stamp.svg}}" width="150" style="top:{{stamp.top}}px;left:{{stamp.left}}px">
+   	{{/each}}
+    </div>
+</main>
+<script>
+import {Draggable} from '@shopify/draggable'
+
+export default {
+  oncreate() {
+    const draggable = new Draggable(document.querySelector('main div.canvas'),{
+      draggable:'img[data-stampid]',
+      delay:0
+    })
+
+    let initialX, initialY
+    let offsetX, offsetY
+
+    draggable.on('drag:start', evt => {
+      initialX = evt.sensorEvent.clientX
+      initialY = evt.sensorEvent.clientY
+    })
+
+    draggable.on('drag:move', evt => {
+      offsetX = evt.sensorEvent.clientX - initialX
+      offsetY = evt.sensorEvent.clientY - initialY
+    })
+
+    draggable.on('drag:stop', evt => {
+      const stampId = evt.source.dataset.stampid
+      this.store.updatePos(stampId, offsetX, offsetY)
+    })
+
+
+  },
+  methods:{
+    add() {
+       const size = Math.floor(Math.random()*100+100)
+       const svg = this.store.getRandomStamp()
+       this.store.addStamp({
+        top:0,
+        left:0,
+        size,
+        svg
+       })
+    }
+  }
+}
+</script>
+<style>
+    main {
+        position: fixed;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .canvas {
+        flex:1;
+        border: 1px solid darkslategrey;
+        margin: 0 19px 19px 19px;
+        position:relative;
+        overflow: hidden;
+    }
+
+    .canvas img {
+        position:absolute;
+    }
+
+    nav {
+        display:flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    nav button {
+        margin-bottom: 0;
+    }
+</style>
