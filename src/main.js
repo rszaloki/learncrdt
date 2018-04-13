@@ -1,5 +1,5 @@
 import App from 'src/App.html'
-import Mergable from 'src/crdt'
+import Mergable from 'src/mergable'
 
 const app = new App({
   target: document.body,
