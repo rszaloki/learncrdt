@@ -1,8 +1,15 @@
+{{#if $signInStatus}}
 <Stamps />
+{{/if}}
 
+{{#if $gapiLoaded && !$signInStatus}}
+<Login />
+{{/if}}
 <script>
+import 'src/google.js'
 import Stamps from 'src/components/Stamps.html'
+import Login from 'src/components/Login.html'
 export default {
-  components: { Stamps }
+  components: { Stamps, Login }
 }
 </script>

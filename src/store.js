@@ -1,23 +1,23 @@
 import Mergable from 'src/mergable'
 import undraw from 'src/undraw'
-import { Store } from 'svelte/store';
+import { Store } from 'svelte/store'
 import uuid from 'uuid/v4'
 
 const stampsLengts = undraw.length
 
 class StampStore extends Store {
-  constructor(init) {
+  constructor (init) {
     super(Object.assign(init, {
       tracker: new Mergable()
     }))
   }
 
-  updateCanvas() {
+  updateCanvas () {
     const tracker = this.get('tracker')
-    this.set({canvas:Object.entries(tracker).map(entry => entry[1]).filter(item => item.stampId)})
+    this.set({canvas: Object.entries(tracker).map(entry => entry[1]).filter(item => item.stampId)})
   }
 
-  addStamp(stamp) {
+  addStamp (stamp) {
     const tracker = this.get('tracker')
     const stampId = uuid()
     stamp.stampId = stampId
@@ -27,10 +27,10 @@ class StampStore extends Store {
     this.updateCanvas()
   }
 
-  updatePos(stampId, ox,oy) {
+  updatePos (stampId, ox, oy) {
     const tracker = this.get('tracker')
     const stamp = tracker[stampId]
-    if(stamp) {
+    if (stamp) {
       console.log(JSON.stringify(stamp))
       stamp.top = stamp.top + oy
       stamp.left = stamp.left + ox
@@ -39,12 +39,24 @@ class StampStore extends Store {
     }
   }
 
-  getRandomStamp() {
-    const index = Math.floor(Math.random()*stampsLengts)
+  getRandomStamp () {
+    const index = Math.floor(Math.random() * stampsLengts)
     return undraw[index]
+  }
+
+  updateFile(newFile) {
+    const file = this.get('file')
+    this.set({ file: Object.assign(file, newFile)})
+    return this.get('file')
   }
 }
 
 export default new StampStore({
-  canvas: []
+  canvas: [],
+  signInStatus: false,
+  gapiLoaded: false,
+  file: {
+    editable: true,
+    mimeType: 'application/json'
+  }
 })

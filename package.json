@@ -17,6 +17,7 @@
     "dev": "webpack-serve --content public --hot"
   },
   "dependencies": {
-    "@shopify/draggable": "^1.0.0-beta.6"
+    "@shopify/draggable": "^1.0.0-beta.6",
+    "load-script": "^1.0.0"
   }
 }

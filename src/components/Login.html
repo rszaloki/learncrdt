@@ -1,0 +1,13 @@
+<main>
+    <button on:click="signIn()">Login</button>
+</main>
+
+<script>
+export default {
+  methods:{
+    signIn() {
+      window.gapi.auth2.getAuthInstance().signIn()
+    }
+  }
+}
+</script>

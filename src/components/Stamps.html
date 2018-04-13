@@ -1,5 +1,5 @@
 <main>
-    <nav><button class="button__primary" on:click="add()">+</button></nav>
+    <nav><div>{{$file.name}}</div><button class="button__primary" on:click="add()">+</button><button on:click="save()">Save</button><button>Load</button></nav>
     <div class="canvas">
    	{{#each $canvas as stamp}}
    	    <img alt="stamp" data-stampid="{{stamp.stampId}}" src="unDraw/{{stamp.svg}}" width="150" style="top:{{stamp.top}}px;left:{{stamp.left}}px">
@@ -8,6 +8,7 @@
 </main>
 <script>
 import {Draggable} from '@shopify/draggable'
+import {saveFile} from 'src/drive'
 
 export default {
   oncreate() {
@@ -46,6 +47,25 @@ export default {
         size,
         svg
        })
+    },
+    save() {
+      let name
+      const file = this.store.get('file')
+      if(!file.name) {
+        name = prompt('filename: ');
+        if(name) {
+          this.store.updateFile({name})
+        }
+      } else {
+        name = file.name
+      }
+
+      if(name) {
+        const doc = JSON.stringify(this.store.get('tracker'))
+        const file = this.store.get('file')
+        saveFile(file, doc).then(result => this.store.updateFile(result)).then(file => console.log(file))
+      }
+
     }
   }
 }
@@ -75,11 +95,16 @@ export default {
 
     nav {
         display:flex;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
+        margin:0 20px;
+        padding: 4px 0;
     }
 
+    nav div {
+        flex:1
+    }
     nav button {
-        margin-bottom: 0;
+    margin: 0 2px
     }
 </style>

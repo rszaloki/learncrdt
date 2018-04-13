@@ -6,4 +6,6 @@ const app = new App({
   store
 })
 
+
+window.store = store
 export default app
