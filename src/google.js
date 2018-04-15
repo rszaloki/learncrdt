@@ -1,6 +1,19 @@
 import store from 'src/store'
 import load from 'load-script'
 
+const updateStore = (user, optional = {}) => {
+  const storeObject = {signInStatus: false}
+  Object.assign(storeObject, optional)
+
+  console.log(user)
+  if (user.isSignedIn()) {
+    const authResponse = user.getAuthResponse(true)
+    Object.assign(storeObject, {signInStatus: true, accessToken: authResponse.access_token})
+  }
+
+  store.set(storeObject)
+}
+
 const gclient = (new Promise(resolve => load('https://apis.google.com/js/platform.js', null, resolve))).then(
   () => new Promise(resolve => window.gapi.load('client:auth2', resolve))).then(() => window.gapi.client.init({
   apiKey: 'AIzaSyAjK1mi8amRdHYTQbeZIdGUlCH7mahevxg',
@@ -8,13 +21,12 @@ const gclient = (new Promise(resolve => load('https://apis.google.com/js/platfor
   scope: 'profile https://www.googleapis.com/auth/drive.file',
   discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
 }).then(function () {
-  window.gapi.auth2.getAuthInstance().isSignedIn.listen(status => store.set({ signInStatus:status }))
+  window.gapi.auth2.getAuthInstance().currentUser.listen(user => updateStore(user))
 
-  const status = window.gapi.auth2.getAuthInstance().isSignedIn.get()
-  store.set({
-    signInStatus:status,
+  updateStore(window.gapi.auth2.getAuthInstance().currentUser.get(), {
     gapiLoaded: true
   })
+
   return window.gapi
 }).catch(e => console.error(e)))
 

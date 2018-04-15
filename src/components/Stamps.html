@@ -1,5 +1,5 @@
 <main>
-    <nav><div>{{$file.name}}</div><button class="button__primary" on:click="add()">+</button><button on:click="save()">Save</button><button>Load</button></nav>
+    <nav><div>{{$file.name}} ({{$file.id}})</div><button class="button__primary" on:click="add()">+</button><button on:click="save()">Save</button><button on:click="load()">Load</button></nav>
     <div class="canvas">
    	{{#each $canvas as stamp}}
    	    <img alt="stamp" data-stampid="{{stamp.stampId}}" src="unDraw/{{stamp.svg}}" width="150" style="top:{{stamp.top}}px;left:{{stamp.left}}px">
@@ -8,7 +8,7 @@
 </main>
 <script>
 import {Draggable} from '@shopify/draggable'
-import {saveFile} from 'src/drive'
+import {getMeta, getPicker} from 'src/drive'
 
 export default {
   oncreate() {
@@ -48,11 +48,21 @@ export default {
         svg
        })
     },
+    load() {
+      getPicker(this.store.get('accessToken'), docs => {
+        getMeta({id:docs.id})
+        .then(file => {this.store.updateFile(file)})
+        .then(() => {
+          this.store.reset()
+          this.store.load()
+        })
+      }).then(picker => picker.setVisible(true))
+    },
     save() {
       let name
       const file = this.store.get('file')
       if(!file.name) {
-        name = prompt('filename: ');
+        name = prompt('filename: ')
         if(name) {
           this.store.updateFile({name})
         }
@@ -61,9 +71,7 @@ export default {
       }
 
       if(name) {
-        const doc = JSON.stringify(this.store.get('tracker'))
-        const file = this.store.get('file')
-        saveFile(file, doc).then(result => this.store.updateFile(result)).then(file => console.log(file))
+        this.store.save()
       }
 
     }

@@ -2,14 +2,14 @@ import Mergable from 'src/mergable'
 import undraw from 'src/undraw'
 import { Store } from 'svelte/store'
 import uuid from 'uuid/v4'
+import { loadFile, saveFile } from 'src/drive'
 
 const stampsLengts = undraw.length
 
 class StampStore extends Store {
   constructor (init) {
-    super(Object.assign(init, {
-      tracker: new Mergable()
-    }))
+    super(init)
+    this.reset()
   }
 
   updateCanvas () {
@@ -44,15 +44,37 @@ class StampStore extends Store {
     return undraw[index]
   }
 
-  updateFile(newFile) {
+  updateFile (newFile) {
+    console.log(newFile)
     const file = this.get('file')
-    this.set({ file: Object.assign(file, newFile)})
+    this.set({file: Object.assign(file, newFile)})
     return this.get('file')
+  }
+
+  reset () {
+    this.set({
+      canvas: [],
+      tracker: new Mergable()
+    })
+  }
+
+  load () {
+    return loadFile(this.get('file')).then(response => {
+      this.set({
+        tracker: new Mergable(response)
+      })
+      this.updateCanvas()
+    })
+  }
+
+  save () {
+    const doc = JSON.stringify(this.get('tracker'))
+    const file = this.get('file')
+    return saveFile(file, doc).then(result => this.updateFile(result))
   }
 }
 
 export default new StampStore({
-  canvas: [],
   signInStatus: false,
   gapiLoaded: false,
   file: {
