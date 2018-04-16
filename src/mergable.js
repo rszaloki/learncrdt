@@ -24,7 +24,7 @@ class Log {
   add (objectId, type, prop, value) {
     const key = JSON.stringify([objectId, prop])
     this[type].set(key, value)
-    console.log(`[${type}] ${key} ${value}`)
+    // console.log(`[${type}] ${key} ${value}`)
   }
 }
 
@@ -78,14 +78,22 @@ const setter = function (obj, prop, value) {
 }
 
 class Mergable {
-  constructor () {
-    this[ID] = getId(OBJECT)
+  constructor (obj) {
+    if (obj && obj[ID]) {
+      this[ID] = obj[ID]
+    } else {
+      this[ID] = getId(OBJECT)
+    }
     this[HISTORY] = new History()
     this[OBJECT_INDEX] = {}
   }
 
-  get history () {
+  get _history () {
     return this[HISTORY]
+  }
+
+  get _objectIndex () {
+    return this[OBJECT_INDEX]
   }
 
   get historyLog () {
@@ -139,25 +147,26 @@ class Mergable {
   }
 
   applyCommit (commitKey, commitLog) {
-    this.applyLog(commitLog[CREATE], objectId => {
-      if (this._objectIndex[objectId] === undefined) {
-        console.log(`[apply] create ${objectId}`)
-        this.wrapObject({[ID]: objectId})
-      }
-    })
-
-    this.applyLog(commitLog[SET], (objectId, prop, value) => {
-      console.log(`[apply] set ${objectId} ${prop} ${value}`)
-      if (isObject(value)) {
-        this[OBJECT_INDEX][objectId][prop] = this[OBJECT_INDEX][value[ID]]
-      } else {
-        if (prop !== ID) {
-          this[OBJECT_INDEX][objectId][prop] = value
+    console.log(`[merge] apply ${commitKey}`)
+    if (commitLog) {
+      this.applyLog(commitLog[CREATE], objectId => {
+        if (this[OBJECT_INDEX][objectId] === undefined) {
+          console.log(`[apply] create ${objectId}`)
+          this.wrapObject({[ID]: objectId})
         }
-      }
-    })
-
-    this.commit(commitKey)
+      })
+      this.applyLog(commitLog[SET], (objectId, prop, value) => {
+        console.log(`[apply] set ${objectId} ${prop} ${value}`)
+        if (isObject(value)) {
+          this[OBJECT_INDEX][objectId][prop] = this[OBJECT_INDEX][value[ID]]
+        } else {
+          if (prop !== ID) {
+            this[OBJECT_INDEX][objectId][prop] = value
+          }
+        }
+      })
+      this.commit(commitKey)
+    }
   }
 
   merge (mergableObject) {
@@ -165,10 +174,14 @@ class Mergable {
     const commitOrder = history.commitOrder
     const myCommits = new Set(this[HISTORY].commitOrder)
 
+    console.log(`[merge] incoming commits ${JSON.stringify(commitOrder)}`)
+    console.log(`[merge] my commits ${JSON.stringify(Array.from(myCommits))}`)
+
     let commitKey = commitOrder.pop()
     while (commitKey) {
+      console.log(`[merge] check ${commitKey}`)
       if (!myCommits.has(commitKey)) {
-        this.applyCommit(commitKey, this[HISTORY].get(commitKey))
+        this.applyCommit(commitKey, history.get(commitKey))
       }
       commitKey = commitOrder.pop()
     }
@@ -177,7 +190,7 @@ class Mergable {
 
 export default new Proxy(Mergable, {
   construct (target, args) {
-    const mergable = new target()
+    const mergable = new target(args[0])
     const proxiedMergable = new Proxy(mergable, {
       set: setter.bind(mergable)
     })

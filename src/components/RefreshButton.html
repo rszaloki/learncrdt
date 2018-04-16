@@ -1,0 +1,16 @@
+<button on:click="refresh()">Refresh</button>
+<script>
+
+export default {
+  methods: {
+    refresh() {
+      this.store.refresh()
+    }
+  }
+}
+</script>
+<style>
+button {
+        margin: 0 2px
+    }
+</style>

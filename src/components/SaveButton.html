@@ -1,0 +1,28 @@
+<button on:click="save()">Save</button>
+<script>
+export default {
+  methods: {
+    save() {
+      let name
+      const file = this.store.get('file')
+      if(!file.name) {
+        name = prompt('filename: ')
+        if(name) {
+          this.store.updateFile({name})
+        }
+      } else {
+        name = file.name
+      }
+
+      if(name) {
+        this.store.save()
+      }
+    }
+  }
+}
+</script>
+<style>
+button {
+        margin: 0 2px
+    }
+</style>

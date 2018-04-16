@@ -1,5 +1,11 @@
 <main>
-    <nav><div>{{$file.name}} ({{$file.id}})</div><button class="button__primary" on:click="add()">+</button><button on:click="save()">Save</button><button on:click="load()">Load</button></nav>
+    <nav>
+        <div>{{#if $file.id}}{{$file.name}}{{/if}}</div>
+        <button class="button__primary" on:click="add()">+</button>
+        {{#if $dirty}}<SaveButton />{{/if}}
+        {{#if !$dirty && $file.id}}<RefreshButton />{{/if}}
+        <LoadButton />
+    </nav>
     <div class="canvas">
    	{{#each $canvas as stamp}}
    	    <img alt="stamp" data-stampid="{{stamp.stampId}}" src="unDraw/{{stamp.svg}}" width="150" style="top:{{stamp.top}}px;left:{{stamp.left}}px">
@@ -8,9 +14,13 @@
 </main>
 <script>
 import {Draggable} from '@shopify/draggable'
-import {getMeta, getPicker} from 'src/drive'
+import SaveButton from 'src/components/SaveButton.html'
+import LoadButton from 'src/components/LoadButton.html'
+import RefreshButton from 'src/components/RefreshButton.html'
 
 export default {
+  components: { SaveButton, LoadButton, RefreshButton },
+
   oncreate() {
     const draggable = new Draggable(document.querySelector('main div.canvas'),{
       draggable:'img[data-stampid]',
@@ -47,33 +57,6 @@ export default {
         size,
         svg
        })
-    },
-    load() {
-      getPicker(this.store.get('accessToken'), docs => {
-        getMeta({id:docs.id})
-        .then(file => {this.store.updateFile(file)})
-        .then(() => {
-          this.store.reset()
-          this.store.load()
-        })
-      }).then(picker => picker.setVisible(true))
-    },
-    save() {
-      let name
-      const file = this.store.get('file')
-      if(!file.name) {
-        name = prompt('filename: ')
-        if(name) {
-          this.store.updateFile({name})
-        }
-      } else {
-        name = file.name
-      }
-
-      if(name) {
-        this.store.save()
-      }
-
     }
   }
 }
@@ -113,6 +96,6 @@ export default {
         flex:1
     }
     nav button {
-    margin: 0 2px
+        margin: 0 2px
     }
 </style>

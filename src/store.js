@@ -2,7 +2,7 @@ import Mergable from 'src/mergable'
 import undraw from 'src/undraw'
 import { Store } from 'svelte/store'
 import uuid from 'uuid/v4'
-import { loadFile, saveFile } from 'src/drive'
+import { getMeta, loadFile, saveFile } from 'src/drive'
 
 const stampsLengts = undraw.length
 
@@ -24,6 +24,7 @@ class StampStore extends Store {
 
     tracker[stampId] = stamp
     tracker.commit()
+    this.set({dirty: true})
     this.updateCanvas()
   }
 
@@ -35,6 +36,7 @@ class StampStore extends Store {
       stamp.top = stamp.top + oy
       stamp.left = stamp.left + ox
       tracker.commit()
+      this.set({dirty: true})
       this.updateCanvas()
     }
   }
@@ -45,32 +47,63 @@ class StampStore extends Store {
   }
 
   updateFile (newFile) {
-    console.log(newFile)
+    console.log(`[file updated] ${newFile}`)
     const file = this.get('file')
     this.set({file: Object.assign(file, newFile)})
     return this.get('file')
   }
 
-  reset () {
+  reset (response = {}) {
+    const tracker = new Mergable(response)
     this.set({
+      dirty: false,
       canvas: [],
-      tracker: new Mergable()
+      tracker: tracker
     })
+    tracker.commit('initial')
+    this.updateCanvas()
   }
 
   load () {
-    return loadFile(this.get('file')).then(response => {
-      this.set({
-        tracker: new Mergable(response)
-      })
+    return loadFile(this.get('file')).then(response => this.reset(response))
+  }
+
+  merge () {
+    const oldTracker = this.get('tracker')
+    return this.load().then(() => {
+      const currentTracker = this.get('tracker')
+      currentTracker.merge(oldTracker)
       this.updateCanvas()
     })
   }
 
-  save () {
-    const doc = JSON.stringify(this.get('tracker'))
+  _save () {
+    const obj = Object.assign({}, this.get('tracker'))
+    const doc = JSON.stringify(obj)
     const file = this.get('file')
-    return saveFile(file, doc).then(result => this.updateFile(result))
+    return saveFile(file, doc).then(result => this.updateFile(result)).then(() => this.reset(obj))
+  }
+
+  refresh () {
+    const file = this.get('file')
+    return getMeta(file).then(driveFile => {
+      if (driveFile.headRevisionId !== file.headRevisionId) {
+        this.updateFile(driveFile)
+        return this.merge(file).then(() => true)
+      } else {
+        return false
+      }
+    })
+  }
+
+  save () {
+    const file = this.get('file')
+
+    if (file.id) {
+      return this.refresh().then((didRefresh) => didRefresh ? this.save() : this._save())
+    } else {
+      return this._save()
+    }
   }
 }
 
